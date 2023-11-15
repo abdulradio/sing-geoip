@@ -215,11 +215,11 @@ func release(source string, destination string) error {
 	if err != nil {
 		return err
 	}
-	writer, err = newWriter(metadata, []string{"cn"})
+	writer, err = newWriter(metadata, []string{"ru"})
 	if err != nil {
 		return err
 	}
-	err = write(writer, countryMap, "geoip-cn.db", []string{"cn"})
+	err = write(writer, countryMap, "geoip-ru.db", []string{"ru"})
 	if err != nil {
 		return err
 	}
