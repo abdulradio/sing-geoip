@@ -28,9 +28,9 @@ jobs:
         run: |
           mkdir dist
           sha256sum geoip.db > dist/geoip.db.sha256sum
-          sha256sum geoip-cn.db > dist/geoip-cn.db.sha256sum
+          sha256sum geoip-ru.db > dist/geoip-ru.db.sha256sum
           cp geoip.db* dist/
-          cp geoip-cn.db* dist/
+          cp geoip-ru.db* dist/
           
       - name: Push artifacts to release branch
         if: steps.build.outputs.skip != 'true'
@@ -44,9 +44,9 @@ jobs:
           
           cp dist/* .
           git add geoip.db
-          git add geoip-cn.db
+          git add geoip-ru.db
           git add geoip.db.sha256sum
-          git add geoip-cn.db.sha256sum
+          git add geoip-ru.db.sha256sum
           
           git commit -am "Updated at $(date)"
           git branch -D release
@@ -90,15 +90,15 @@ jobs:
           asset_path: ./geoip.db.sha256sum
           asset_name: geoip.db.sha256sum
           asset_content_type: text/plain
-      - name: Release geoip-cn.db
+      - name: Release geoip-ru.db
         if: steps.build.outputs.skip != 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./geoip-cn.db
-          asset_name: geoip-cn.db
+          asset_path: ./geoip-ru.db
+          asset_name: geoip-ru.db
           asset_content_type: application/octet-stream
       - name: Release geoip.db sha256sum
         if: steps.build.outputs.skip != 'true'
@@ -107,6 +107,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./geoip-cn.db.sha256sum
-          asset_name: geoip-cn.db.sha256sum
+          asset_path: ./geoip-ru.db.sha256sum
+          asset_name: geoip-ru.db.sha256sum
           asset_content_type: text/plain
