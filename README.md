@@ -1,7 +1,31 @@
-# geoip.db for sing-box
+# GeoIP RU
 
-This project manages a list of ips, to be used as geoips for routing purpose in [SagerNet/sing-box](https://github.com/SagerNet/sing-box).
+geoip contains databases of IP addresses of Russia and Belarus(MaxMind), cloudflare, cloudfront, facebook, fastly, google, netflix, telegram, twitter.
 
-Based on [soffchen/geoip](https://github.com/soffchen/geoip) modified from [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip)
+## Example Sing-box rules geoip.db
 
-You could download the lastest `geoip.db` from [https://github.com/soffchen/sing-geoip/releases/latest/download/geoip.db](https://github.com/soffchen/sing-geoip/releases/latest/download/geoip.db) or [https://cdn.jsdelivr.net/gh/soffchen/sing-geoip@release/geoip.db](https://cdn.jsdelivr.net/gh/soffchen/sing-geoip@release/geoip.db) with CDN powered by jsdelivr.
+```json
+"route": {
+    "geoip": {
+        "path": "/tmp/geoip.db",
+        "download_url": "https://github.com/abdulradio/sing-geoip/releases/latest/download/geoip.db",
+        "download_detour": "proxy"
+    },
+    "rules": [
+       {   
+         "geoip": "telegram",
+         "outbound": "proxy"
+       },  
+       {
+         "geoip": [
+           "private",
+           "ru",
+           "by",
+           "google"
+         ],
+         "outbound": "direct"
+       }
+    ],
+    "final": "proxy",
+    "auto_detect_interface": true
+}
