@@ -56,10 +56,10 @@ func get(downloadURL *string) ([]byte, error) {
 
 func download(release *github.RepositoryRelease) ([]byte, error) {
 	geoipAsset := common.Find(release.Assets, func(it *github.ReleaseAsset) bool {
-		return *it.Name == "Country-only-ru-by-private.mmdb"
+		return *it.Name == "Country.mmdb"
 	})
 	if geoipAsset == nil {
-		return nil, E.New("Country-only-ru-by-private.mmdb not found in upstream release ", release.Name)
+		return nil, E.New("Country.mmdb not found in upstream release ", release.Name)
 	}
 	return get(geoipAsset.BrowserDownloadURL)
 }
