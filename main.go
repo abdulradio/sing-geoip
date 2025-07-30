@@ -181,24 +181,6 @@ func local(input string, output string, codes []string) error {
 	return write(writer, countryMap, output, codes)
 }
 
-func setActionOutput(name string, content string) error {
-	outputPath := os.Getenv("GITHUB_OUTPUT")
-	if outputPath == "" {
-		// Не в среде GitHub Actions — просто выводим в консоль
-		fmt.Printf("Output skipped: %s=%s\n", name, content)
-		return nil
-	}
-
-	f, err := os.OpenFile(outputPath, os.O_APPEND|os.O_WRONLY, 0600)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	_, err = f.WriteString(fmt.Sprintf("%s=%s\n", name, content))
-	return err
-}
-
 func release(source string, destination string) error {
 	sourceRelease, err := fetch(source)
 	if err != nil {
@@ -249,11 +231,28 @@ func release(source string, destination string) error {
 	}
 
         tagName := *sourceRelease.TagName
-        if err := setActionOutput("tag", tagName[12:]); err != nil {
+        if err := setActionOutput("tag", tagName); err != nil {
 	    logrus.WithError(err).Warn("failed to write tag output")
         }
 
 	return nil
+}
+
+func setActionOutput(name string, content string) error {
+	outputPath := os.Getenv("GITHUB_OUTPUT")
+	if outputPath == "" {
+		fmt.Printf("Output skipped: %s=%s\n", name, content)
+		return nil
+	}
+
+	f, err := os.OpenFile(outputPath, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(fmt.Sprintf("%s=%s\n", name, content))
+	return err
 }
 
 func main() {
