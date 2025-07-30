@@ -29,7 +29,13 @@ jobs:
           go-version: ${{ steps.version.outputs.go_version }}
       - name: Build geoip
         id: build
-        run: go run -v .
+        run: |
+          go run -v .
+          if [[ -f geoip.db ]]; then
+            echo "skip=false" >> $GITHUB_OUTPUT
+          else
+            echo "skip=true" >> $GITHUB_OUTPUT
+          fi
       - name: Generate sha256 hash
         if: steps.build.outputs.skip != 'true'
         run: |
