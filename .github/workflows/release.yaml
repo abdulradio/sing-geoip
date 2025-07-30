@@ -1,18 +1,21 @@
 name: Release
+
 on:
   workflow_dispatch:
   schedule:
     - cron: "30 0 * * 2"
+
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          
+
       - name: Get latest go version
         id: version
         run: |
@@ -27,11 +30,13 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{ steps.version.outputs.go_version }}
+
       - name: Build geoip
         id: build
         env:
           NO_SKIP: true
         run: go run -v .
+
       - name: Generate sha256 hash
         run: |
           mkdir dist
@@ -39,7 +44,7 @@ jobs:
           sha256sum geoip-ru.db > dist/geoip-ru.db.sha256sum
           cp geoip.db* dist/
           cp geoip-ru.db* dist/
-          
+
       - name: Push artifacts to release branch
         run: |
           git config --local user.email "891708+soffchen@users.noreply.github.com"
@@ -48,13 +53,9 @@ jobs:
           git checkout release
           git checkout --orphan release-orphan
           git rm -rf .
-          
+
           cp dist/* .
-          git add geoip.db
-          git add geoip-ru.db
-          git add geoip.db.sha256sum
-          git add geoip-ru.db.sha256sum
-          
+          git add geoip.db geoip-ru.db geoip.db.sha256sum geoip-ru.db.sha256sum
           git commit -am "Updated at $(date)"
           git branch -D release
           git branch -m release
@@ -65,54 +66,20 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: release
           force: true
-          
+
       - name: Generate tag name
         id: tag
-        run: |
-          echo "tag=$(date -u +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
-          
-      - name: Create a release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "tag=$(date -u +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release and upload assets
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: ${{ steps.tag.outputs.tag }}
-
-      - name: Release geoip.db
-        uses: actions/upload-release-asset@v1
+          name: ${{ steps.tag.outputs.tag }}
+          files: |
+            dist/geoip.db
+            dist/geoip.db.sha256sum
+            dist/geoip-ru.db
+            dist/geoip-ru.db.sha256sum
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./geoip.db
-          asset_name: geoip.db
-          asset_content_type: application/octet-stream
-      - name: Release geoip.db sha256sum
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./geoip.db.sha256sum
-          asset_name: geoip.db.sha256sum
-          asset_content_type: text/plain
-      - name: Release geoip-ru.db
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./geoip-ru.db
-          asset_name: geoip-ru.db
-          asset_content_type: application/octet-stream
-      - name: Release geoip.db sha256sum
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./geoip-ru.db.sha256sum
-          asset_name: geoip-ru.db.sha256sum
-          asset_content_type: text/plain
