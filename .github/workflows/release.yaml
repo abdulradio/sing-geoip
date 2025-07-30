@@ -29,8 +29,9 @@ jobs:
           go-version: ${{ steps.version.outputs.go_version }}
       - name: Build geoip
         id: build
-        run: |
-          go run -v .
+        env:
+          NO_SKIP: true
+        run: go run -v .
       - name: Generate sha256 hash
         run: |
           mkdir dist
