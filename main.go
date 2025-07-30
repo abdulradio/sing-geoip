@@ -199,7 +199,7 @@ func setActionOutput(name string, content string) error {
 	return err
 }
 
-func release(source string, destination string, output string) error {
+func release(source string, destination string) error {
 	sourceRelease, err := fetch(source)
 	if err != nil {
 		return err
@@ -208,7 +208,7 @@ func release(source string, destination string, output string) error {
 	if err != nil {
 		logrus.Warn("missing destination latest release")
 	} else {
-		if os.Getenv("NO_SKIP") != "true" && strings.Contains(*destinationRelease.Name, *sourceRelease.Name) {
+		if os.Getenv("NO_SKIP") != "true" && strings.Contains(*destinationRelease.TagName, *sourceRelease.TagName) {
 			logrus.Info("already latest")
 			if err := setActionOutput("skip", "true"); err != nil {
 	                    logrus.WithError(err).Warn("failed to write skip output")
@@ -216,15 +216,43 @@ func release(source string, destination string, output string) error {
 			return nil
 		}
 	}
-	err = generate(sourceRelease, output)
+	binary, err := download(sourceRelease)
 	if err != nil {
 		return err
 	}
-	// Remove "Released on" from Loyalsoldier/v2ray-rules-dat
-	tagName := *sourceRelease.Name
-	if err := setActionOutput("tag", tagName[12:]); err != nil {
+	metadata, countryMap, err := parse(binary)
+	if err != nil {
+		return err
+	}
+	allCodes := make([]string, 0, len(countryMap))
+	for code := range countryMap {
+		allCodes = append(allCodes, code)
+	}
+	writer, err := newWriter(metadata, allCodes)
+	if err != nil {
+		return err
+	}
+	err = write(writer, countryMap, "geoip.db", nil)
+	if err != nil {
+		return err
+	}
+	writer, err = newWriter(metadata, []string{"ru"})
+	if err != nil {
+		return err
+	}
+	err = write(writer, countryMap, "geoip-ru.db", []string{"ru"})
+	if err != nil {
+		return err
+	}
+	if err != nil {
+		return err
+	}
+
+        tagName := *sourceRelease.TagName
+        if err := setActionOutput("tag", tagName[12:]); err != nil {
 	    logrus.WithError(err).Warn("failed to write tag output")
         }
+
 	return nil
 }
 
