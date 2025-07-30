@@ -231,7 +231,7 @@ func release(source string, destination string) error {
 	}
 
         tagName := *sourceRelease.TagName
-        if err := setActionOutput("tag", tagName); err != nil {
+        if err := setActionOutput("tag", tagName[12:]); err != nil {
 	    logrus.WithError(err).Warn("failed to write tag output")
         }
 
