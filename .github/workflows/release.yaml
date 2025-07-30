@@ -65,18 +65,22 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: release
           force: true
+          
+      - name: Generate tag name
+        id: tag
+        run: echo "tag=v$(date -u +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Create a release
-        if: steps.build.outputs.skip != 'true'
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.build.outputs.tag }}
-          release_name: ${{ steps.build.outputs.tag }}
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: false
+
       - name: Release geoip.db
         if: steps.build.outputs.skip != 'true'
         uses: actions/upload-release-asset@v1
