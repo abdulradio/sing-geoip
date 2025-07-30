@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -191,7 +192,9 @@ func release(source string, destination string) error {
 	} else {
 		if os.Getenv("NO_SKIP") != "true" && strings.Contains(*destinationRelease.TagName, *sourceRelease.TagName) {
 			logrus.Info("already latest")
-			setActionOutput("skip", "true")
+			if err := setActionOutput("skip", "true"); err != nil {
+	                    logrus.WithError(err).Warn("failed to write skip output")
+                        }
 			return nil
 		}
 	}
@@ -228,13 +231,29 @@ func release(source string, destination string) error {
 	}
 
         tagName := *sourceRelease.TagName
-        setActionOutput("tag", tagName)
+        if err := setActionOutput("tag", tagName); err != nil {
+	    logrus.WithError(err).Warn("failed to write tag output")
+        }
 
 	return nil
 }
 
-func setActionOutput(name string, content string) {
-	os.Stdout.WriteString("::set-output name=" + name + "::" + content + "\n")
+func setActionOutput(name string, content string) error {
+	outputPath := os.Getenv("GITHUB_OUTPUT")
+	if outputPath == "" {
+		// Не в среде GitHub Actions — просто выводим в консоль
+		fmt.Printf("Output skipped: %s=%s\n", name, content)
+		return nil
+	}
+
+	f, err := os.OpenFile(outputPath, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(fmt.Sprintf("%s=%s\n", name, content))
+	return err
 }
 
 func main() {
