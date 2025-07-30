@@ -241,12 +241,11 @@ func release(source string, destination string) error {
 func setActionOutput(name string, content string) error {
 	outputPath := os.Getenv("GITHUB_OUTPUT")
 	if outputPath == "" {
-		// Не в среде GitHub Actions — просто выводим в консоль
 		fmt.Printf("Output skipped: %s=%s\n", name, content)
 		return nil
 	}
 
-	f, err := os.OpenFile(outputPath, os.O_APPEND|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(outputPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
